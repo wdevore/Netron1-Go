@@ -43,6 +43,16 @@ func NewRasterBuffer(width, height int) api.IRasterBuffer {
 	return o
 }
 
+// Width of buffer
+func (rb *RasterBuffer) Width() int {
+	return rb.width
+}
+
+// Height of buffer
+func (rb *RasterBuffer) Height() int {
+	return rb.height
+}
+
 // EnableAlphaBlending turns on/off per pixel alpha blending
 func (rb *RasterBuffer) EnableAlphaBlending(enable bool) {
 	rb.alphaBlending = enable
@@ -92,6 +102,11 @@ func (rb *RasterBuffer) SetPixel(x, y int) {
 	} else {
 		rb.pixels.SetRGBA(x, y, rb.PixelColor)
 	}
+}
+
+// GetPixel get pixel
+func (rb *RasterBuffer) GetPixel(x, y int) color.RGBA {
+	return rb.pixels.RGBAAt(x, y)
 }
 
 // SetPixelColor set the current pixel color and sets the pixel

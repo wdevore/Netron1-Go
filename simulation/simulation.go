@@ -3,7 +3,6 @@ package simulation
 import (
 	"Netron1-Go/api"
 	"fmt"
-	"image/color"
 	"time"
 )
 
@@ -13,7 +12,10 @@ type Simulation struct {
 	running   bool
 	paused    bool
 	completed bool
-	raster    api.IRasterBuffer
+
+	raster api.IRasterBuffer
+
+	model api.IModel
 }
 
 func NewSimulation() *Simulation {
@@ -30,6 +32,8 @@ func (s *Simulation) Initialize(rasterBuffer api.IRasterBuffer) {
 // Boot is the simulation bootstrap. The simulation isn't
 // running until told to do so.
 func (s *Simulation) Start(inChan chan string, outChan chan string) {
+	s.configure()
+
 	for s.loop {
 		select {
 		case cmd := <-inChan:
@@ -78,7 +82,6 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 				outChan <- "Reset"
 				s.running = false
 				s.reset()
-				s.configure()
 			case "stop":
 				outChan <- "Stopped"
 				s.running = false
@@ -95,7 +98,7 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 			if s.paused {
 			} else {
 				// The sim is running, make a step
-				s.running = s.step()
+				s.running = s.model.Step()
 				if !s.running {
 					outChan <- "Complete"
 					s.completed = true
@@ -107,23 +110,26 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 	}
 }
 
+func (s *Simulation) configure() {
+	s.model = NewSIRModel()
+	s.model.Configure(s.raster)
+}
+
 func (s *Simulation) reset() {
 	s.debug = 0
 	s.paused = false
 	s.completed = false
+
+	s.model.Reset()
 }
 
-func (s *Simulation) configure() {
-	s.raster.Clear()
-	s.raster.SetPixelColor(color.RGBA{R: 255, G: 0, B: 0, A: 255})
-}
+// func (s *Simulation) step() bool {
+// 	return s.model.Step()
+// 	// s.debug++
+// 	// if s.debug > 100 {
+// 	// 	return false
+// 	// }
 
-func (s *Simulation) step() bool {
-	s.debug++
-	if s.debug > 100 {
-		return false
-	}
-
-	s.raster.SetPixel(s.debug, s.debug)
-	return true
-}
+// 	// s.raster.SetPixel(s.debug, s.debug)
+// 	// return true
+// }

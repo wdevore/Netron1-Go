@@ -8,9 +8,16 @@ import (
 // IRasterBuffer api for color and depth buffer
 type IRasterBuffer interface {
 	EnableAlphaBlending(enable bool)
+
+	Width() int
+	Height() int
+
 	Pixels() *image.RGBA
+
 	SetClearColor(c color.RGBA)
 	Clear()
-	SetPixel(x, y int)
+
 	SetPixelColor(c color.RGBA)
+	SetPixel(x, y int)
+	GetPixel(x, y int) color.RGBA
 }
