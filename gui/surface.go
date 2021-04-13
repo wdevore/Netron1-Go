@@ -2,9 +2,9 @@ package gui
 
 const (
 	// SurfaceScale scales the view
-	SurfaceScale = 10
-	width        = 100 * SurfaceScale
-	height       = 100 * SurfaceScale
+	SurfaceScale = 200
+	width        = SurfaceScale
+	height       = SurfaceScale
 	windowPosX   = 1500
 	windowPosY   = 100
 	fps          = 15.0

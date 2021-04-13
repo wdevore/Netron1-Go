@@ -31,6 +31,7 @@ type WindowSurface struct {
 	step    bool
 
 	opened bool
+	ready  bool
 
 	chFromSim chan string
 	chToSim   chan string
@@ -131,18 +132,19 @@ func (ws *WindowSurface) filterEvent(e sdl.Event, userdata interface{}) bool {
 				ws.running = false
 			case sdl.SCANCODE_R:
 				ws.chToSim <- "run"
+			case sdl.SCANCODE_E:
+				ws.chToSim <- "step"
+			case sdl.SCANCODE_P:
+				ws.chToSim <- "pause"
+			case sdl.SCANCODE_U:
+				ws.chToSim <- "resume"
+			case sdl.SCANCODE_T:
+				ws.chToSim <- "stop"
+			case sdl.SCANCODE_A:
+				ws.chToSim <- "status"
 			case sdl.SCANCODE_S:
 				ws.chToSim <- "reset"
 				ws.step = true
-				// case 'o':
-				// 	// Stop sim
-				// 	// simStatus = "Stopping"
-				// case 'p':
-				// 	// Pause sim
-				// 	// simStatus = "Pausing"
-				// case 'e':
-				// Step sim
-				// simStatus = "Stepping"
 			}
 		}
 		// fmt.Printf("[%d ms] Keyboard\ttype:%d\tsym:%c\tmodifiers:%d\tstate:%d\trepeat:%d\n",
@@ -189,7 +191,11 @@ func (ws *WindowSurface) Run(chToSim, chFromSim chan string) {
 
 		ws.clearDisplay()
 
-		ws.texture.Update(nil, ws.rasterBuffer.Pixels().Pix, ws.rasterBuffer.Pixels().Stride)
+		// if ws.ready {
+		// 	ws.texture.Update(nil, ws.rasterBuffer.Pixels().Pix, ws.rasterBuffer.Pixels().Stride)
+		// 	ws.ready = false
+		// }
+
 		ws.renderer.Copy(ws.texture, nil, nil)
 
 		// fmt.Printf("<%d, %d>\n", ws.mx, ws.my)
@@ -214,6 +220,12 @@ func (ws *WindowSurface) Run(chToSim, chFromSim chan string) {
 	}
 
 	fmt.Println("Run exiting")
+}
+
+// Update
+func (ws *WindowSurface) Update() {
+	ws.texture.Update(nil, ws.rasterBuffer.Pixels().Pix, ws.rasterBuffer.Pixels().Stride)
+	// ws.ready = true
 }
 
 // Quit stops the gui from running, effectively shutting it down.
@@ -257,12 +269,4 @@ func (ws *WindowSurface) Close() {
 
 func (ws *WindowSurface) clearDisplay() {
 	ws.window.UpdateSurface()
-}
-
-// SetDrawColor --
-func (ws *WindowSurface) SetDrawColor(color sdl.Color) {
-}
-
-// SetPixel --
-func (ws *WindowSurface) SetPixel(x, y int) {
 }

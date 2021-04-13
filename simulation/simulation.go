@@ -13,7 +13,8 @@ type Simulation struct {
 	paused    bool
 	completed bool
 
-	raster api.IRasterBuffer
+	raster  api.IRasterBuffer
+	surface api.ISurface
 
 	model api.IModel
 }
@@ -25,8 +26,9 @@ func NewSimulation() *Simulation {
 	return o
 }
 
-func (s *Simulation) Initialize(rasterBuffer api.IRasterBuffer) {
+func (s *Simulation) Initialize(rasterBuffer api.IRasterBuffer, surface api.ISurface) {
 	s.raster = rasterBuffer
+	s.surface = surface
 }
 
 // Boot is the simulation bootstrap. The simulation isn't
@@ -57,6 +59,10 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 
 				s.running = true
 				outChan <- "Started"
+			case "step":
+				s.model.Step()
+				s.surface.Update()
+				outChan <- "Stepped"
 			case "pause":
 				if !s.running {
 					outChan <- "Not Running"
@@ -82,6 +88,7 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 				outChan <- "Reset"
 				s.running = false
 				s.reset()
+				s.surface.Update()
 			case "stop":
 				outChan <- "Stopped"
 				s.running = false
@@ -99,6 +106,7 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 			} else {
 				// The sim is running, make a step
 				s.running = s.model.Step()
+				s.surface.Update()
 				if !s.running {
 					outChan <- "Complete"
 					s.completed = true

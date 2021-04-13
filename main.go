@@ -56,7 +56,8 @@ func main() {
 	// Setup simulation
 	// -----------------------------------------------------
 	sim := simulation.NewSimulation()
-	sim.Initialize(surface.Raster())
+
+	sim.Initialize(surface.Raster(), surface)
 	go sim.Start(chToSim, chFromSim)
 
 	// -----------------------------------------------------
@@ -95,6 +96,8 @@ func messageFromConsole(chToSim chan string) {
 			chToSim <- "run"
 		case "p":
 			chToSim <- "pause"
+		case "e":
+			chToSim <- "step"
 		case "u":
 			chToSim <- "resume"
 		case "s":
@@ -128,6 +131,8 @@ func messageFromSim(chFromSim chan string, config api.IConfig, surface api.ISurf
 				mainLoop = false
 			case "Started":
 				fmt.Println("Simulation started.")
+			case "Stepped":
+				fmt.Println("Simulation stepped.")
 			case "Reset":
 				fmt.Println("Simulation reset.")
 			case "Terminated":
