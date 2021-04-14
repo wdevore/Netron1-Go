@@ -196,7 +196,7 @@ func (ws *WindowSurface) Run(chToSim, chFromSim chan string) {
 		// 	ws.ready = false
 		// }
 
-		ws.renderer.Copy(ws.texture, nil, nil)
+		// ws.renderer.Copy(ws.texture, nil, nil)
 
 		// fmt.Printf("<%d, %d>\n", ws.mx, ws.my)
 
@@ -225,6 +225,7 @@ func (ws *WindowSurface) Run(chToSim, chFromSim chan string) {
 // Update
 func (ws *WindowSurface) Update() {
 	ws.texture.Update(nil, ws.rasterBuffer.Pixels().Pix, ws.rasterBuffer.Pixels().Stride)
+	ws.renderer.Copy(ws.texture, nil, nil)
 	// ws.ready = true
 }
 

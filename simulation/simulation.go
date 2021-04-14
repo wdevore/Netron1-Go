@@ -119,7 +119,7 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 }
 
 func (s *Simulation) configure() {
-	s.model = NewSIRModel()
+	s.model = NewSISimmuModel()
 	s.model.Configure(s.raster)
 }
 

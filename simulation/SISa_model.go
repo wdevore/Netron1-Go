@@ -7,19 +7,32 @@ import (
 	"math/rand"
 )
 
-type SIRModel struct {
-	infectedColor    color.RGBA // cell type = 1
-	susceptibleColor color.RGBA // cell type = 2
-	removedColor     color.RGBA // cell type = 3
+type SISaModel struct {
+	undetermenedColor color.RGBA // cell type = 0
+	infectedColor     color.RGBA // cell type = 1
+	susceptibleColor  color.RGBA // cell type = 2
+	removedColor      color.RGBA // cell type = 3
 
-	raster           api.IRasterBuffer
-	cellStates       [][]int
-	cellNextStates   [][]int
-	transmissionRate float32
+	raster         api.IRasterBuffer
+	cellStates     [][]int
+	cellNextStates [][]int
+
+	acceptibleRate float64
+
+	// The chance that the person picks up meditation again
+	repeatRate float64
+	// The chance they will drop meditation.
+	dropRate float64
+	// The chance they will try meditation
+	pickupRate float64
+
+	// The chance that someone spontaneously starts meditating.
+	spontaneousRate float64
 }
 
-func NewSIRModel() api.IModel {
-	o := new(SIRModel)
+func NewSISaModel() api.IModel {
+	o := new(SISaModel)
+	o.undetermenedColor = color.RGBA{R: 200, G: 255, B: 200, A: 255}
 	// Infected = Blue
 	o.infectedColor = color.RGBA{R: 0, G: 0, B: 255, A: 255}
 	// Susceptible = Skin
@@ -30,22 +43,27 @@ func NewSIRModel() api.IModel {
 	return o
 }
 
-func (s *SIRModel) GetInfectedColor() color.RGBA {
+func (s *SISaModel) GetInfectedColor() color.RGBA {
 	return s.infectedColor
 }
 
-func (s *SIRModel) GetSusceptibleColor() color.RGBA {
+func (s *SISaModel) GetSusceptibleColor() color.RGBA {
 	return s.susceptibleColor
 }
 
-func (s *SIRModel) GetRemovedColor() color.RGBA {
+func (s *SISaModel) GetRemovedColor() color.RGBA {
 	return s.removedColor
 }
 
-func (s *SIRModel) Configure(rasterBuffer api.IRasterBuffer) {
+func (s *SISaModel) Configure(rasterBuffer api.IRasterBuffer) {
 	s.raster = rasterBuffer
-	s.transmissionRate = 0.5
-	rand.Seed(131)
+	s.acceptibleRate = 0.26
+	s.repeatRate = 0.2
+	s.dropRate = 0.9
+	s.pickupRate = 0.5
+	s.spontaneousRate = 0.5
+
+	rand.Seed(13163)
 
 	s.cellStates = make([][]int, s.raster.Height())
 	s.cellNextStates = make([][]int, s.raster.Height())
@@ -55,7 +73,7 @@ func (s *SIRModel) Configure(rasterBuffer api.IRasterBuffer) {
 	}
 }
 
-func (s *SIRModel) Reset() {
+func (s *SISaModel) Reset() {
 	fmt.Println(("--- sir reset ---"))
 	s.raster.Clear()
 
@@ -65,17 +83,12 @@ func (s *SIRModel) Reset() {
 	w := s.raster.Width()
 	h := s.raster.Height()
 
-	cx := w / 2
-	cy := h / 2
-
 	for col := 0; col < w; col += 1 {
 		for row := 0; row < h; row += 1 {
 			s.cellStates[col][row] = 2     // Susceptible
 			s.cellNextStates[col][row] = 0 // Undetermined
 		}
 	}
-
-	s.cellStates[cx][cy] = 1 // Infected
 
 	for col := 0; col < w; col += 1 {
 		for row := 0; row < h; row += 1 {
@@ -89,10 +102,9 @@ func (s *SIRModel) Reset() {
 			s.raster.SetPixel(col, row)
 		}
 	}
-
 }
 
-func (s *SIRModel) Step() bool {
+func (s *SISaModel) Step() bool {
 	// The current "step" works on the current-state but updates the next-state
 	// Once done, the next-state is copied back to the current-state.
 	w := s.raster.Width()
@@ -102,19 +114,18 @@ func (s *SIRModel) Step() bool {
 
 	for col := 0; col < w; col += 1 {
 		for row := 0; row < h; row += 1 {
-			// fmt.Println("row-col: ", row, ",", col, " = ", s.cellStates[col][row])
 			if s.cellStates[col][row] == 1 { // Is infected
-				// Transition from Infected to Removed
-				s.cellNextStates[col][row] = 3
+				// How likely will they drop it.
+				if rand.Float64() < s.dropRate {
+					s.cellNextStates[col][row] = 2 // Suceptible
+				}
 
 				// Check neighbors.
 				ce = col + 1
 				if ce < w { // Right
-					// If neighbor isn't (infected AND they arent removed) = Suceptible
-					// then randomize against transmission rate
+					// If neighbor isn't (infected AND they are acceptible) = Suceptible
 					if s.cellStates[ce][row] != 3 {
-						chance := rand.Float32()
-						if chance < s.transmissionRate {
+						if rand.Float64() < s.acceptibleRate {
 							// Cell is now infected
 							s.cellNextStates[ce][row] = 1
 							infected++
@@ -125,8 +136,7 @@ func (s *SIRModel) Step() bool {
 				ce = col - 1
 				if ce >= 0 { // Left
 					if s.cellStates[ce][row] != 3 {
-						chance := rand.Float32()
-						if chance < s.transmissionRate {
+						if rand.Float64() < s.acceptibleRate {
 							// Cell is now infected
 							s.cellNextStates[ce][row] = 1
 							infected++
@@ -137,8 +147,7 @@ func (s *SIRModel) Step() bool {
 				ce = row - 1
 				if ce >= 0 { // Top
 					if s.cellStates[col][ce] != 3 {
-						chance := rand.Float32()
-						if chance < s.transmissionRate {
+						if rand.Float64() < s.acceptibleRate {
 							// Cell is now infected
 							s.cellNextStates[col][ce] = 1
 							infected++
@@ -149,8 +158,7 @@ func (s *SIRModel) Step() bool {
 				ce = row + 1
 				if ce < h { // Bottom
 					if s.cellStates[col][ce] != 3 {
-						chance := rand.Float32()
-						if chance < s.transmissionRate {
+						if rand.Float64() < s.acceptibleRate {
 							// Cell is bottom infected
 							s.cellNextStates[col][ce] = 1
 							infected++
@@ -159,11 +167,27 @@ func (s *SIRModel) Step() bool {
 				}
 			} else {
 				if s.cellStates[col][row] == 0 {
-					// This cell is now determined to susceptible
-					s.cellNextStates[col][row] = 2
+					// This person hasn't experienced meditation yet.
+					if rand.Float64() < s.pickupRate {
+						s.cellNextStates[col][row] = 2 // Suceptible
+					}
 				}
 			}
 		}
+	}
+
+	if rand.Float64() < s.spontaneousRate {
+		// pick a col and row to infect
+		col := int(rand.Float64()*float64(s.raster.Width())) - 1
+		if col < 0 {
+			col = 0
+		}
+		row := int(rand.Float64()*float64(s.raster.Width())) - 1
+		if row < 0 {
+			row = 0
+		}
+		s.cellNextStates[col][row] = 1
+		infected++
 	}
 
 	// Copy next-state to current-state
@@ -174,13 +198,15 @@ func (s *SIRModel) Step() bool {
 				s.raster.SetPixelColor(s.infectedColor)
 			} else if s.cellStates[col][row] == 2 {
 				s.raster.SetPixelColor(s.susceptibleColor)
-			} else {
+			} else if s.cellStates[col][row] == 3 {
 				s.raster.SetPixelColor(s.removedColor)
+			} else {
+				s.raster.SetPixelColor(s.undetermenedColor)
 			}
 			s.raster.SetPixel(col, row)
 		}
 	}
 
 	// fmt.Println("Newly infected: ", infected)
-	return infected > 0
+	return true //infected > 0
 }
