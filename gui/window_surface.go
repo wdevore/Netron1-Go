@@ -191,10 +191,11 @@ func (ws *WindowSurface) Run(chToSim, chFromSim chan string) {
 
 		ws.clearDisplay()
 
-		// if ws.ready {
-		// 	ws.texture.Update(nil, ws.rasterBuffer.Pixels().Pix, ws.rasterBuffer.Pixels().Stride)
-		// 	ws.ready = false
-		// }
+		if ws.ready {
+			ws.texture.Update(nil, ws.rasterBuffer.Pixels().Pix, ws.rasterBuffer.Pixels().Stride)
+			ws.renderer.Copy(ws.texture, nil, nil)
+			ws.ready = false
+		}
 
 		// ws.renderer.Copy(ws.texture, nil, nil)
 
@@ -224,9 +225,9 @@ func (ws *WindowSurface) Run(chToSim, chFromSim chan string) {
 
 // Update
 func (ws *WindowSurface) Update() {
-	ws.texture.Update(nil, ws.rasterBuffer.Pixels().Pix, ws.rasterBuffer.Pixels().Stride)
-	ws.renderer.Copy(ws.texture, nil, nil)
-	// ws.ready = true
+	// ws.texture.Update(nil, ws.rasterBuffer.Pixels().Pix, ws.rasterBuffer.Pixels().Stride)
+	// ws.renderer.Copy(ws.texture, nil, nil)
+	ws.ready = true
 }
 
 // Quit stops the gui from running, effectively shutting it down.

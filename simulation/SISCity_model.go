@@ -65,7 +65,7 @@ func (s *SISCityModel) GetRemovedColor() color.RGBA {
 
 func (s *SISCityModel) Configure(rasterBuffer api.IRasterBuffer) {
 	s.raster = rasterBuffer
-	s.acceptibleRate = 0.28
+	s.acceptibleRate = 0.27
 	s.dropRate = 0.9
 
 	rand.Seed(131)
@@ -84,9 +84,6 @@ func (s *SISCityModel) Reset() {
 	h := s.raster.Height()
 
 	// Create two zones. Each zone is a square.
-	px := 250
-	py := 250
-	radius := 5
 
 	for col := 0; col < w; col += 1 {
 		for row := 0; row < h; row += 1 {
@@ -95,6 +92,9 @@ func (s *SISCityModel) Reset() {
 		}
 	}
 
+	px := 250
+	py := 250
+	radius := 10
 	for col := px; col < px+radius; col += 1 {
 		for row := py; row < py+radius; row += 1 {
 			s.cells[col][row].state = 1
