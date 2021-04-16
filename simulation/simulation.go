@@ -121,6 +121,8 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 func (s *Simulation) configure() {
 	s.model = NewSISCityModel()
 	s.model.Configure(s.raster)
+	s.model.Reset()
+	s.surface.Update()
 }
 
 func (s *Simulation) reset() {
