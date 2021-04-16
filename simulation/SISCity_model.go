@@ -26,19 +26,8 @@ type SISCityModel struct {
 	cells  [][]Cell
 
 	acceptibleRate float64
-
-	// The chance that the person picks up meditation again
-	repeatRate float64
 	// The chance they will drop meditation.
 	dropRate float64
-	// The chance they will try meditation
-	pickupRate float64
-
-	// The chance that someone spontaneously starts meditating.
-	spontaneousRate float64
-
-	// The chance the person has no interest at all
-	immunityRate float64
 
 	// degree goes from 4 to 8
 	degree int
@@ -76,15 +65,10 @@ func (s *SISCityModel) GetRemovedColor() color.RGBA {
 
 func (s *SISCityModel) Configure(rasterBuffer api.IRasterBuffer) {
 	s.raster = rasterBuffer
-	s.acceptibleRate = 0.29
+	s.acceptibleRate = 0.28
 	s.dropRate = 0.9
 
-	s.repeatRate = 0.2
-	s.pickupRate = 0.5
-	s.spontaneousRate = 0.25
-	s.immunityRate = 0.5
-
-	rand.Seed(13163)
+	rand.Seed(131)
 
 	s.cells = make([][]Cell, s.raster.Height())
 	for i := range s.cells {
@@ -331,7 +315,7 @@ func (s *SISCityModel) Step() bool {
 	}
 
 	// fmt.Println("Newly infected: ", infected)
-	return true //infected > 0
+	return infected > 0
 }
 
 func (s *SISCityModel) drawCell(col, row int) {
