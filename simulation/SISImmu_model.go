@@ -13,9 +13,10 @@ type SISimmuModel struct {
 	susceptibleColor  color.RGBA // cell type = 2
 	removedColor      color.RGBA // cell type = 3
 
-	raster         api.IRasterBuffer
-	cellStates     [][]int
-	cellNextStates [][]int
+	raster api.IRasterBuffer
+	// cellStates     [][]int
+	// cellNextStates [][]int
+	cells [][]Cell
 
 	acceptibleRate float64
 
@@ -65,24 +66,19 @@ func (s *SISimmuModel) Configure(rasterBuffer api.IRasterBuffer) {
 	s.dropRate = 0.9
 	s.pickupRate = 0.5
 	s.spontaneousRate = 0.25
-	s.immunityRate = 0.1
+	s.immunityRate = 0.01
 
 	rand.Seed(13163)
 
-	s.cellStates = make([][]int, s.raster.Height())
-	s.cellNextStates = make([][]int, s.raster.Height())
-	for i := range s.cellStates {
-		s.cellStates[i] = make([]int, s.raster.Width())
-		s.cellNextStates[i] = make([]int, s.raster.Width())
+	s.cells = make([][]Cell, s.raster.Height())
+	for i := range s.cells {
+		s.cells[i] = make([]Cell, s.raster.Width())
 	}
 }
 
 func (s *SISimmuModel) Reset() {
 	fmt.Println(("--- sir reset ---"))
 	s.raster.Clear()
-
-	// Start with the center "cell" infected = Blue
-	s.raster.SetPixelColor(s.infectedColor)
 
 	w := s.raster.Width()
 	h := s.raster.Height()
@@ -91,20 +87,20 @@ func (s *SISimmuModel) Reset() {
 		for row := 0; row < h; row += 1 {
 			// Is this person have no interest ever
 			if rand.Float64() < s.immunityRate {
-				s.cellStates[col][row] = 3 // Immune
-				s.cellNextStates[col][row] = 3
+				s.cells[col][row].state = 3 // Immune
+				s.cells[col][row].nextState = 3
 			} else {
-				s.cellStates[col][row] = 2     // Susceptible
-				s.cellNextStates[col][row] = 0 // Undetermined
+				s.cells[col][row].state = 2 // Susceptible
+				s.cells[col][row].nextState = 2
 			}
 		}
 	}
 
 	for col := 0; col < w; col += 1 {
 		for row := 0; row < h; row += 1 {
-			if s.cellStates[col][row] == 1 {
+			if s.cells[col][row].state == 1 {
 				s.raster.SetPixelColor(s.infectedColor)
-			} else if s.cellStates[col][row] == 3 {
+			} else if s.cells[col][row].state == 3 {
 				s.raster.SetPixelColor(s.removedColor)
 			} else {
 				s.raster.SetPixelColor(s.susceptibleColor)
@@ -124,20 +120,20 @@ func (s *SISimmuModel) Step() bool {
 
 	for col := 0; col < w; col += 1 {
 		for row := 0; row < h; row += 1 {
-			if s.cellStates[col][row] == 1 { // Is infected
+			if s.cells[col][row].state == 1 { // Is infected
 				// How likely will they drop it.
 				if rand.Float64() < s.dropRate {
-					s.cellNextStates[col][row] = 2 // Suceptible
+					s.cells[col][row].nextState = 2 // Suceptible
 				}
 
 				// Check neighbors.
 				ce = col + 1
 				if ce < w { // Right
 					// If neighbor isn't (infected AND they are acceptible) = Suceptible
-					if s.cellStates[ce][row] == 2 {
+					if s.cells[ce][row].state == 2 {
 						if rand.Float64() < s.acceptibleRate {
 							// Cell is now infected
-							s.cellNextStates[ce][row] = 1
+							s.cells[ce][row].nextState = 1
 							infected++
 						}
 					}
@@ -145,10 +141,10 @@ func (s *SISimmuModel) Step() bool {
 
 				ce = col - 1
 				if ce >= 0 { // Left
-					if s.cellStates[ce][row] == 2 {
+					if s.cells[ce][row].state == 2 {
 						if rand.Float64() < s.acceptibleRate {
 							// Cell is now infected
-							s.cellNextStates[ce][row] = 1
+							s.cells[ce][row].nextState = 1
 							infected++
 						}
 					}
@@ -156,10 +152,10 @@ func (s *SISimmuModel) Step() bool {
 
 				ce = row - 1
 				if ce >= 0 { // Top
-					if s.cellStates[col][ce] == 2 {
+					if s.cells[col][ce].state == 2 {
 						if rand.Float64() < s.acceptibleRate {
 							// Cell is now infected
-							s.cellNextStates[col][ce] = 1
+							s.cells[col][ce].nextState = 1
 							infected++
 						}
 					}
@@ -167,19 +163,12 @@ func (s *SISimmuModel) Step() bool {
 
 				ce = row + 1
 				if ce < h { // Bottom
-					if s.cellStates[col][ce] == 2 {
+					if s.cells[col][ce].state == 2 {
 						if rand.Float64() < s.acceptibleRate {
 							// Cell is bottom infected
-							s.cellNextStates[col][ce] = 1
+							s.cells[col][ce].nextState = 1
 							infected++
 						}
-					}
-				}
-			} else {
-				if s.cellStates[col][row] == 0 {
-					// This person hasn't experienced meditation yet.
-					if rand.Float64() < s.pickupRate {
-						s.cellNextStates[col][row] = 2 // Suceptible
 					}
 				}
 			}
@@ -196,8 +185,8 @@ func (s *SISimmuModel) Step() bool {
 		if row < 0 {
 			row = 0
 		}
-		if s.cellNextStates[col][row] != 3 {
-			s.cellNextStates[col][row] = 1
+		if s.cells[col][row].state != 3 {
+			s.cells[col][row].nextState = 1
 			infected++
 		}
 	}
@@ -205,15 +194,13 @@ func (s *SISimmuModel) Step() bool {
 	// Copy next-state to current-state
 	for col := 0; col < w; col += 1 {
 		for row := 0; row < h; row += 1 {
-			s.cellStates[col][row] = s.cellNextStates[col][row]
-			if s.cellStates[col][row] == 1 {
+			s.cells[col][row].state = s.cells[col][row].nextState
+			if s.cells[col][row].state == 1 {
 				s.raster.SetPixelColor(s.infectedColor)
-			} else if s.cellStates[col][row] == 2 {
+			} else if s.cells[col][row].state == 2 {
 				s.raster.SetPixelColor(s.susceptibleColor)
-			} else if s.cellStates[col][row] == 3 {
+			} else if s.cells[col][row].state == 3 {
 				s.raster.SetPixelColor(s.removedColor)
-			} else {
-				s.raster.SetPixelColor(s.undetermenedColor)
 			}
 			s.raster.SetPixel(col, row)
 		}

@@ -119,7 +119,7 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 }
 
 func (s *Simulation) configure() {
-	s.model = NewSISimmuModel()
+	s.model = NewSISCityModel()
 	s.model.Configure(s.raster)
 }
 
@@ -130,14 +130,3 @@ func (s *Simulation) reset() {
 
 	s.model.Reset()
 }
-
-// func (s *Simulation) step() bool {
-// 	return s.model.Step()
-// 	// s.debug++
-// 	// if s.debug > 100 {
-// 	// 	return false
-// 	// }
-
-// 	// s.raster.SetPixel(s.debug, s.debug)
-// 	// return true
-// }
