@@ -39,7 +39,7 @@ func NewSISCityModel() api.IModel {
 	// Infected = Blue
 	o.infectedColor = color.RGBA{R: 0, G: 0, B: 255, A: 255}
 	// Susceptible = Skin
-	o.susceptibleColor = color.RGBA{R: 255, G: 225, B: 200, A: 255}
+	o.susceptibleColor = color.RGBA{R: 255, G: 235, B: 230, A: 255}
 	// Removed = Gray
 	o.removedColor = color.RGBA{R: 150, G: 150, B: 150, A: 255}
 

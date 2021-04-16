@@ -7,6 +7,6 @@ const (
 	height       = SurfaceScale
 	windowPosX   = 1500
 	windowPosY   = 100
-	fps          = 15.0
+	fps          = 30.0
 	framePeriod  = 1.0 / fps * 1000.0
 )

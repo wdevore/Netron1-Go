@@ -66,7 +66,7 @@ func (s *SISimmuModel) Configure(rasterBuffer api.IRasterBuffer) {
 	s.dropRate = 0.9
 	s.pickupRate = 0.5
 	s.spontaneousRate = 0.25
-	s.immunityRate = 0.01
+	s.immunityRate = 0.1
 
 	rand.Seed(13163)
 
