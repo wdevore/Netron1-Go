@@ -13,9 +13,11 @@ type IRasterBuffer interface {
 	Height() int
 
 	Pixels() *image.RGBA
+	BackPixels() *image.RGBA
 
 	SetClearColor(c color.RGBA)
 	Clear()
+	Swap()
 
 	SetPixelColor(c color.RGBA)
 	SetPixel(x, y int)

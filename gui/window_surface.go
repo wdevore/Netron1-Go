@@ -79,7 +79,7 @@ func (ws *WindowSurface) initialize() {
 	}
 
 	ws.rasterBuffer = simulation.NewRasterBuffer(width, height)
-	// ws.rasterBuffer.EnableAlphaBlending(true)
+	ws.rasterBuffer.EnableAlphaBlending(true)
 
 }
 
@@ -191,13 +191,9 @@ func (ws *WindowSurface) Run(chToSim, chFromSim chan string) {
 
 		ws.clearDisplay()
 
-		if ws.ready {
-			ws.texture.Update(nil, ws.rasterBuffer.Pixels().Pix, ws.rasterBuffer.Pixels().Stride)
-			ws.renderer.Copy(ws.texture, nil, nil)
-			ws.ready = false
-		}
-
-		// ws.renderer.Copy(ws.texture, nil, nil)
+		pixs := ws.rasterBuffer.BackPixels()
+		ws.texture.Update(nil, pixs.Pix, pixs.Stride)
+		ws.renderer.Copy(ws.texture, nil, nil)
 
 		// fmt.Printf("<%d, %d>\n", ws.mx, ws.my)
 
@@ -224,10 +220,8 @@ func (ws *WindowSurface) Run(chToSim, chFromSim chan string) {
 }
 
 // Update
-func (ws *WindowSurface) Update() {
-	// ws.texture.Update(nil, ws.rasterBuffer.Pixels().Pix, ws.rasterBuffer.Pixels().Stride)
-	// ws.renderer.Copy(ws.texture, nil, nil)
-	ws.ready = true
+func (ws *WindowSurface) Update(state bool) {
+	ws.rasterBuffer.Swap()
 }
 
 // Quit stops the gui from running, effectively shutting it down.

@@ -58,10 +58,12 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 				}
 
 				s.running = true
+				s.reset()
+				s.surface.Update(true)
 				outChan <- "Started"
 			case "step":
 				s.model.Step()
-				s.surface.Update()
+				s.surface.Update(true)
 				outChan <- "Stepped"
 			case "pause":
 				if !s.running {
@@ -88,7 +90,7 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 				outChan <- "Reset"
 				s.running = false
 				s.reset()
-				s.surface.Update()
+				s.surface.Update(true)
 			case "stop":
 				outChan <- "Stopped"
 				s.running = false
@@ -106,7 +108,7 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 			} else {
 				// The sim is running, make a step
 				s.running = s.model.Step()
-				s.surface.Update()
+				s.surface.Update(true)
 				if !s.running {
 					outChan <- "Complete"
 					s.completed = true
@@ -119,10 +121,10 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 }
 
 func (s *Simulation) configure() {
-	s.model = NewSISCityModel()
+	s.model = NewSISKnowledgeModel()
 	s.model.Configure(s.raster)
 	s.model.Reset()
-	s.surface.Update()
+	s.surface.Update(true)
 }
 
 func (s *Simulation) reset() {

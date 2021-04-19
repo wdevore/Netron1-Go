@@ -12,6 +12,6 @@ type ISurface interface {
 	Configure()
 	SetFont(fontPath string, size int) error
 
-	Update()
+	Update(bool)
 	Raster() IRasterBuffer
 }

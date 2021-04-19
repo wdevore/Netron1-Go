@@ -51,18 +51,6 @@ func NewSISCityModel() api.IModel {
 	return o
 }
 
-func (s *SISCityModel) GetInfectedColor() color.RGBA {
-	return s.infectedColor
-}
-
-func (s *SISCityModel) GetSusceptibleColor() color.RGBA {
-	return s.susceptibleColor
-}
-
-func (s *SISCityModel) GetRemovedColor() color.RGBA {
-	return s.removedColor
-}
-
 func (s *SISCityModel) Configure(rasterBuffer api.IRasterBuffer) {
 	s.raster = rasterBuffer
 	s.acceptibleRate = 0.27
