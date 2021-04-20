@@ -47,26 +47,18 @@ func NewSISimmuModel() api.IModel {
 	return o
 }
 
-func (s *SISimmuModel) GetInfectedColor() color.RGBA {
-	return s.infectedColor
-}
-
-func (s *SISimmuModel) GetSusceptibleColor() color.RGBA {
-	return s.susceptibleColor
-}
-
-func (s *SISimmuModel) GetRemovedColor() color.RGBA {
-	return s.removedColor
+func (s *SISimmuModel) Name() string {
+	return "SISimmuModel"
 }
 
 func (s *SISimmuModel) Configure(rasterBuffer api.IRasterBuffer) {
 	s.raster = rasterBuffer
-	s.acceptibleRate = 0.3 // 26 = below threshold
+	s.acceptibleRate = 0.26 // 26 = below threshold
 	s.repeatRate = 0.2
 	s.dropRate = 0.9
 	s.pickupRate = 0.5
 	s.spontaneousRate = 0.25
-	s.immunityRate = 0.1
+	s.immunityRate = 0.01
 
 	rand.Seed(13163)
 

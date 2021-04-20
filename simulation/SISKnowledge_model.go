@@ -53,10 +53,14 @@ func NewSISKnowledgeModel() api.IModel {
 	return o
 }
 
+func (s *SISKnowledgeModel) Name() string {
+	return "SISKnowledgeModel"
+}
+
 func (s *SISKnowledgeModel) Configure(rasterBuffer api.IRasterBuffer) {
 	s.raster = rasterBuffer
-	s.acceptableRate = 0.22 // 0.22
-	s.dropRate = 0.6        // 0.6
+	s.acceptableRate = 0.23 // 0.22
+	s.dropRate = 0.4        // 0.6
 
 	rand.Seed(131)
 
@@ -86,9 +90,9 @@ func (s *SISKnowledgeModel) Reset() {
 	}
 
 	// Initial knowledge crowd
-	px := 200
-	py := 200
-	radius := 2
+	px := 150
+	py := 150
+	radius := 4
 	for col := px; col < px+radius; col += 1 {
 		for row := py; row < py+radius; row += 1 {
 			s.cells[col][row].state = 1     // has knowledge
@@ -99,10 +103,10 @@ func (s *SISKnowledgeModel) Reset() {
 	// Create 4 knowledge centers with different skills levels
 	distance := 15
 
-	s.knowledgeCenters = append(s.knowledgeCenters, NewKCellCenter(200, 200, color.RGBA{R: 255, G: 127, B: 0, A: 255}, 1))
-	s.knowledgeCenters = append(s.knowledgeCenters, NewKCellCenter(200+distance, 200, color.RGBA{R: 0, G: 255, B: 100, A: 255}, 2))
-	s.knowledgeCenters = append(s.knowledgeCenters, NewKCellCenter(200+distance, 200+distance, color.RGBA{R: 0, G: 200, B: 200, A: 255}, 3))
-	s.knowledgeCenters = append(s.knowledgeCenters, NewKCellCenter(200, 200+distance, color.RGBA{R: 255, G: 0, B: 255, A: 255}, 4))
+	s.knowledgeCenters = append(s.knowledgeCenters, NewKCellCenter(px, px, color.RGBA{R: 255, G: 127, B: 0, A: 255}, 1))
+	s.knowledgeCenters = append(s.knowledgeCenters, NewKCellCenter(px+distance, px, color.RGBA{R: 0, G: 255, B: 100, A: 255}, 2))
+	s.knowledgeCenters = append(s.knowledgeCenters, NewKCellCenter(px+distance, px+distance, color.RGBA{R: 0, G: 200, B: 200, A: 255}, 3))
+	s.knowledgeCenters = append(s.knowledgeCenters, NewKCellCenter(px, px+distance, color.RGBA{R: 255, G: 0, B: 255, A: 255}, 4))
 	// Mark them on the grid
 	for _, k := range s.knowledgeCenters {
 		s.cells[k.col][k.row].state = 1

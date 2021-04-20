@@ -2,7 +2,7 @@ package gui
 
 const (
 	// SurfaceScale scales the view
-	SurfaceScale = 500
+	SurfaceScale = 300
 	width        = SurfaceScale
 	height       = SurfaceScale
 	windowPosX   = 1500

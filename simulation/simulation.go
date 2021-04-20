@@ -3,8 +3,18 @@ package simulation
 import (
 	"Netron1-Go/api"
 	"fmt"
+	"image"
+	"image/color"
+	"image/color/palette"
+	"image/draw"
+	"image/gif"
+	"image/png"
+	"log"
+	"os"
 	"time"
 )
+
+const gifOutputPath = "/media/RAMDisk/netron/"
 
 type Simulation struct {
 	debug     int
@@ -17,12 +27,22 @@ type Simulation struct {
 	surface api.ISurface
 
 	model api.IModel
+
+	discName   string
+	discNameId int
+	gAni       *gif.GIF
+	// Set to true if you want an animated gif generated.
+	// Note: rendering will considerably slower.
+	// To save gif use the "t" key to stop simulation. Once
+	// stopped the gif is saved.
+	enableGif bool
 }
 
 func NewSimulation() *Simulation {
 	o := new(Simulation)
 	o.running = false
 	o.loop = true
+	o.enableGif = false
 	return o
 }
 
@@ -63,6 +83,9 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 				outChan <- "Started"
 			case "step":
 				s.model.Step()
+				if s.enableGif {
+					s.addGif()
+				}
 				s.surface.Update(true)
 				outChan <- "Stepped"
 			case "pause":
@@ -95,6 +118,9 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 				outChan <- "Stopped"
 				s.running = false
 				s.completed = false
+				if s.enableGif {
+					s.saveGif()
+				}
 			case "status":
 				outChan <- fmt.Sprintf("Status: %d", s.debug)
 			}
@@ -108,6 +134,10 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 			} else {
 				// The sim is running, make a step
 				s.running = s.model.Step()
+				// Save image to disc
+				if s.enableGif {
+					s.addGif()
+				}
 				s.surface.Update(true)
 				if !s.running {
 					outChan <- "Complete"
@@ -128,9 +158,68 @@ func (s *Simulation) configure() {
 }
 
 func (s *Simulation) reset() {
+	s.discNameId = 0
 	s.debug = 0
 	s.paused = false
 	s.completed = false
+	s.gAni = &gif.GIF{}
+	s.gAni.Image = []*image.Paletted{}
+	s.gAni.Delay = []int{}
 
 	s.model.Reset()
+}
+
+func (s *Simulation) save() {
+	s.saveGif()
+}
+
+func (s *Simulation) saveGif() {
+	fn := fmt.Sprintf(gifOutputPath+"%s%d.gif", s.model.Name(), s.discNameId)
+	f, err := os.Create(fn)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = gif.EncodeAll(f, s.gAni)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func (s *Simulation) addGif() {
+	img := s.raster.Pixels()
+
+	gifOps := &gif.Options{NumColors: 256, Drawer: draw.FloydSteinberg}
+	pimg := image.NewPaletted(img.Bounds(), palette.Plan9[:gifOps.NumColors])
+	if gifOps.Quantizer != nil {
+		pimg.Palette = gifOps.Quantizer.Quantize(make(color.Palette, 0, gifOps.NumColors), img)
+	}
+
+	gifOps.Drawer.Draw(pimg, img.Bounds(), img, image.Point{})
+
+	s.gAni.Image = append(s.gAni.Image, pimg)
+	spf := 1 / float64(15)
+	s.gAni.Delay = append(s.gAni.Delay, int(spf*100))
+
+	// err = gif.Encode(f, s.raster.Pixels(), gifOps)
+
+	s.discNameId++
+}
+
+func (s *Simulation) savePng() {
+	fn := fmt.Sprintf("/media/RAMDisk/netron/%s%d.png", s.model.Name(), s.discNameId)
+	f, err := os.Create(fn)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = png.Encode(f, s.raster.Pixels())
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+	s.discNameId++
 }

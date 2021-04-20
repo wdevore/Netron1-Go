@@ -30,16 +30,8 @@ func NewSIRModel() api.IModel {
 	return o
 }
 
-func (s *SIRModel) GetInfectedColor() color.RGBA {
-	return s.infectedColor
-}
-
-func (s *SIRModel) GetSusceptibleColor() color.RGBA {
-	return s.susceptibleColor
-}
-
-func (s *SIRModel) GetRemovedColor() color.RGBA {
-	return s.removedColor
+func (s *SIRModel) Name() string {
+	return "SIRModel"
 }
 
 func (s *SIRModel) Configure(rasterBuffer api.IRasterBuffer) {

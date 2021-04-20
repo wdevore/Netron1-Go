@@ -40,26 +40,18 @@ func NewSISModel() api.IModel {
 	return o
 }
 
-func (s *SISModel) GetInfectedColor() color.RGBA {
-	return s.infectedColor
-}
-
-func (s *SISModel) GetSusceptibleColor() color.RGBA {
-	return s.susceptibleColor
-}
-
-func (s *SISModel) GetRemovedColor() color.RGBA {
-	return s.removedColor
+func (s *SISModel) Name() string {
+	return "SISModel"
 }
 
 func (s *SISModel) Configure(rasterBuffer api.IRasterBuffer) {
 	s.raster = rasterBuffer
-	s.acceptibleRate = 0.27
+	s.acceptibleRate = 0.28
 	s.repeatRate = 0.2
 	s.dropRate = 0.9
 	s.pickupRate = 0.5
 
-	rand.Seed(13163)
+	rand.Seed(131)
 
 	s.cellStates = make([][]int, s.raster.Height())
 	s.cellNextStates = make([][]int, s.raster.Height())

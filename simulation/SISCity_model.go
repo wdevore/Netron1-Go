@@ -51,9 +51,13 @@ func NewSISCityModel() api.IModel {
 	return o
 }
 
+func (s *SISCityModel) Name() string {
+	return "SISCityModel"
+}
+
 func (s *SISCityModel) Configure(rasterBuffer api.IRasterBuffer) {
 	s.raster = rasterBuffer
-	s.acceptibleRate = 0.27
+	s.acceptibleRate = 0.28
 	s.dropRate = 0.9
 
 	rand.Seed(131)
@@ -80,8 +84,8 @@ func (s *SISCityModel) Reset() {
 		}
 	}
 
-	px := 250
-	py := 250
+	px := 150
+	py := 150
 	radius := 10
 	for col := px; col < px+radius; col += 1 {
 		for row := py; row < py+radius; row += 1 {
@@ -89,8 +93,8 @@ func (s *SISCityModel) Reset() {
 		}
 	}
 
-	px = 210
-	py = 210
+	px = 110
+	py = 110
 	radius = 40
 	// Create largest area first
 	for col := px; col < px+radius; col += 1 {
@@ -127,8 +131,8 @@ func (s *SISCityModel) Reset() {
 	}
 
 	// ------------------------------------------------
-	px = 260
-	py = 260
+	px = 160
+	py = 160
 	radius = 40
 	// Create largest area first
 	for col := px; col < px+radius; col += 1 {
