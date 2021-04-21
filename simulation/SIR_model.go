@@ -47,6 +47,10 @@ func (s *SIRModel) Configure(rasterBuffer api.IRasterBuffer) {
 	}
 }
 
+// SendEvent receives an event from the host simulation
+func (s *SIRModel) SendEvent(event string) {
+}
+
 func (s *SIRModel) Reset() {
 	fmt.Println(("--- sir reset ---"))
 	s.raster.Clear()

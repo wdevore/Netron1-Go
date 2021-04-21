@@ -68,6 +68,10 @@ func (s *SISimmuModel) Configure(rasterBuffer api.IRasterBuffer) {
 	}
 }
 
+// SendEvent receives an event from the host simulation
+func (s *SISimmuModel) SendEvent(event string) {
+}
+
 func (s *SISimmuModel) Reset() {
 	fmt.Println(("--- sir reset ---"))
 	s.raster.Clear()

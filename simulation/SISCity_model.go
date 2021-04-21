@@ -28,6 +28,7 @@ type SISCityModel struct {
 	acceptibleRate float64
 	// The chance they will drop meditation.
 	dropRate float64
+	stepSize float64
 
 	// degree goes from 4 to 8
 	degree int
@@ -48,6 +49,7 @@ func NewSISCityModel() api.IModel {
 	o.degree7Color = color.RGBA{R: 150, G: 150, B: 150, A: 255}
 	o.degree8Color = color.RGBA{R: 125, G: 125, B: 125, A: 255}
 
+	o.stepSize = 0.005
 	return o
 }
 
@@ -55,10 +57,34 @@ func (s *SISCityModel) Name() string {
 	return "SISCityModel"
 }
 
+// SendEvent receives an event from the host simulation
+func (s *SISCityModel) SendEvent(event string) {
+	switch event {
+	case "inc accept": // decrease acceptible rate
+		s.acceptibleRate -= s.stepSize
+		fmt.Println("acceptibleRate: ", s.acceptibleRate)
+	case "dec accept": // increase accetable rate
+		s.acceptibleRate += s.stepSize
+		fmt.Println("acceptibleRate: ", s.acceptibleRate)
+	case "inc drop": // increase drop rate
+		s.dropRate += s.stepSize
+		fmt.Println("dropRate: ", s.dropRate)
+	case "dec drop": // decrease drop rate
+		s.dropRate -= s.stepSize
+		fmt.Println("dropRate: ", s.dropRate)
+	case "inc size": // increase step size
+		s.stepSize += 0.005
+		fmt.Println("stepSize: ", s.stepSize)
+	case "dec size": // decrease step size
+		s.stepSize -= 0.005
+		fmt.Println("stepSize: ", s.stepSize)
+	}
+}
+
 func (s *SISCityModel) Configure(rasterBuffer api.IRasterBuffer) {
 	s.raster = rasterBuffer
-	s.acceptibleRate = 0.28
-	s.dropRate = 0.9
+	s.acceptibleRate = 0.23
+	s.dropRate = 0.7
 
 	rand.Seed(131)
 
@@ -76,7 +102,6 @@ func (s *SISCityModel) Reset() {
 	h := s.raster.Height()
 
 	// Create two zones. Each zone is a square.
-
 	for col := 0; col < w; col += 1 {
 		for row := 0; row < h; row += 1 {
 			s.cells[col][row].state = 2     // Susceptible
@@ -93,86 +118,57 @@ func (s *SISCityModel) Reset() {
 		}
 	}
 
-	px = 110
-	py = 110
-	radius = 40
-	// Create largest area first
-	for col := px; col < px+radius; col += 1 {
-		for row := py; row < py+radius; row += 1 {
-			s.cells[col][row].degree = 5
-		}
-	}
-
-	px += 5
-	py += 5
-	radius -= 10
-	for col := px; col < px+radius; col += 1 {
-		for row := py; row < py+radius; row += 1 {
-			s.cells[col][row].degree = 6
-		}
-	}
-
-	px += 5
-	py += 5
-	radius -= 10
-	for col := px; col < px+radius; col += 1 {
-		for row := py; row < py+radius; row += 1 {
-			s.cells[col][row].degree = 7
-		}
-	}
-
-	px += 5
-	py += 5
-	radius -= 10
-	for col := px; col < px+radius; col += 1 {
-		for row := py; row < py+radius; row += 1 {
-			s.cells[col][row].degree = 8
-		}
-	}
-
-	// ------------------------------------------------
-	px = 160
-	py = 160
-	radius = 40
-	// Create largest area first
-	for col := px; col < px+radius; col += 1 {
-		for row := py; row < py+radius; row += 1 {
-			s.cells[col][row].degree = 5
-		}
-	}
-
-	px += 5
-	py += 5
-	radius -= 10
-	for col := px; col < px+radius; col += 1 {
-		for row := py; row < py+radius; row += 1 {
-			s.cells[col][row].degree = 6
-		}
-	}
-
-	px += 5
-	py += 5
-	radius -= 10
-	for col := px; col < px+radius; col += 1 {
-		for row := py; row < py+radius; row += 1 {
-			s.cells[col][row].degree = 7
-		}
-	}
-
-	px += 5
-	py += 5
-	radius -= 10
-	for col := px; col < px+radius; col += 1 {
-		for row := py; row < py+radius; row += 1 {
-			s.cells[col][row].degree = 8
-		}
-	}
+	s.buildCity(100, 100)
+	s.buildCity(105, 165)
+	s.buildCity(165, 115)
+	s.buildCity(165, 165)
 
 	for col := 0; col < w; col += 1 {
 		for row := 0; row < h; row += 1 {
 			s.drawCell(col, row)
 		}
 	}
+}
+
+func (s *SISCityModel) buildCity(px, py int) {
+	radius := 40
+
+	// Create largest area first
+	for col := px; col < px+radius; col += 1 {
+		for row := py; row < py+radius; row += 1 {
+			s.cells[col][row].degree = 5
+		}
+	}
+
+	px += 5
+	py += 5
+	radius -= 10
+	for col := px; col < px+radius; col += 1 {
+		for row := py; row < py+radius; row += 1 {
+			s.cells[col][row].degree = 6
+		}
+	}
+
+	px += 5
+	py += 5
+	radius -= 10
+	for col := px; col < px+radius; col += 1 {
+		for row := py; row < py+radius; row += 1 {
+			s.cells[col][row].degree = 7
+		}
+	}
+
+	px += 5
+	py += 5
+	radius -= 10
+	for col := px; col < px+radius; col += 1 {
+		for row := py; row < py+radius; row += 1 {
+			s.cells[col][row].degree = 8
+		}
+	}
+}
+
+func (s *SISCityModel) moveCity(dx, dy int) {
 }
 
 func (s *SISCityModel) Step() bool {

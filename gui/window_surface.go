@@ -145,6 +145,18 @@ func (ws *WindowSurface) filterEvent(e sdl.Event, userdata interface{}) bool {
 			case sdl.SCANCODE_S:
 				ws.chToSim <- "reset"
 				ws.step = true
+			case sdl.SCANCODE_K: // decrease acceptible rate
+				ws.chToSim <- "inc accept"
+			case sdl.SCANCODE_L: // increase accetable rate
+				ws.chToSim <- "dec accept"
+			case sdl.SCANCODE_N: // decrease drop rate
+				ws.chToSim <- "dec drop"
+			case sdl.SCANCODE_M: // increase drop rate
+				ws.chToSim <- "inc drop"
+			case sdl.SCANCODE_COMMA: // decrease step size
+				ws.chToSim <- "dec size"
+			case sdl.SCANCODE_PERIOD: // increase step size
+				ws.chToSim <- "inc size"
 			}
 		}
 		// fmt.Printf("[%d ms] Keyboard\ttype:%d\tsym:%c\tmodifiers:%d\tstate:%d\trepeat:%d\n",

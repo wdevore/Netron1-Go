@@ -125,6 +125,10 @@ func (s *SISModel) Reset() {
 	}
 }
 
+// SendEvent receives an event from the host simulation
+func (s *SISModel) SendEvent(event string) {
+}
+
 func (s *SISModel) Step() bool {
 	// The current "step" works on the current-state but updates the next-state
 	// Once done, the next-state is copied back to the current-state.

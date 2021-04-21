@@ -49,7 +49,7 @@ func (s *SISaModel) Name() string {
 
 func (s *SISaModel) Configure(rasterBuffer api.IRasterBuffer) {
 	s.raster = rasterBuffer
-	s.acceptibleRate = 0.27
+	s.acceptibleRate = 0.26
 	s.repeatRate = 0.2
 	s.dropRate = 0.9
 	s.pickupRate = 0.5
@@ -63,6 +63,10 @@ func (s *SISaModel) Configure(rasterBuffer api.IRasterBuffer) {
 		s.cellStates[i] = make([]int, s.raster.Width())
 		s.cellNextStates[i] = make([]int, s.raster.Width())
 	}
+}
+
+// SendEvent receives an event from the host simulation
+func (s *SISaModel) SendEvent(event string) {
 }
 
 func (s *SISaModel) Reset() {

@@ -72,6 +72,10 @@ func (s *SISKnowledgeModel) Configure(rasterBuffer api.IRasterBuffer) {
 	}
 }
 
+// SendEvent receives an event from the host simulation
+func (s *SISKnowledgeModel) SendEvent(event string) {
+}
+
 func (s *SISKnowledgeModel) Reset() {
 	fmt.Println(("--- sir reset ---"))
 	s.raster.Clear()

@@ -123,6 +123,8 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 				}
 			case "status":
 				outChan <- fmt.Sprintf("Status: %d", s.debug)
+			default:
+				s.model.SendEvent(cmd)
 			}
 		default:
 			if !s.running {
@@ -151,7 +153,7 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 }
 
 func (s *Simulation) configure() {
-	s.model = NewSISKnowledgeModel()
+	s.model = NewSISCityModel()
 	s.model.Configure(s.raster)
 	s.model.Reset()
 	s.surface.Update(true)
