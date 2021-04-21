@@ -87,10 +87,6 @@ func (ws *WindowSurface) Raster() api.IRasterBuffer {
 	return ws.rasterBuffer
 }
 
-// Configure view with draw objects
-func (ws *WindowSurface) Configure() {
-}
-
 // Open shows the viewer and begins event polling
 // (host deuron.IHost)
 func (ws *WindowSurface) Open() {

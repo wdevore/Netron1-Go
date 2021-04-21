@@ -9,7 +9,6 @@ type ISurface interface {
 	Run(chToSim, chFromSim chan string)
 	Quit()
 
-	Configure()
 	SetFont(fontPath string, size int) error
 
 	Update(bool)

@@ -36,7 +36,6 @@ func main() {
 	surface := gui.NewSurfaceBuffer()
 
 	surface.Open()
-	surface.Configure()
 
 	go surface.Run(chToSim, chFromSim)
 
