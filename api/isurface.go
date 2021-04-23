@@ -3,7 +3,7 @@ package api
 // ISurface is the graph viewer
 type ISurface interface {
 	// Open(IHost)
-	Open()
+	Open(IModel)
 	Close()
 
 	Run(chToSim, chFromSim chan string)

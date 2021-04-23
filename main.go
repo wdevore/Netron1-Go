@@ -30,12 +30,14 @@ func main() {
 	chToSim := make(chan string)
 	chFromSim := make(chan string)
 
+	model := simulation.NewSISDynCorrModel()
+
 	// -----------------------------------------------------
 	// Setup GUI
 	// -----------------------------------------------------
 	surface := gui.NewSurfaceBuffer()
 
-	surface.Open()
+	surface.Open(model)
 
 	go surface.Run(chToSim, chFromSim)
 
@@ -55,8 +57,10 @@ func main() {
 	// Setup simulation
 	// -----------------------------------------------------
 	sim := simulation.NewSimulation()
-
 	sim.Initialize(surface.Raster(), surface)
+
+	sim.Configure(model)
+
 	go sim.Start(chToSim, chFromSim)
 
 	// -----------------------------------------------------

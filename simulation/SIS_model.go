@@ -2,6 +2,7 @@ package simulation
 
 import (
 	"Netron1-Go/api"
+	"Netron1-Go/gui"
 	"fmt"
 	"image/color"
 	"math/rand"
@@ -127,6 +128,10 @@ func (s *SISModel) Reset() {
 
 // SendEvent receives an event from the host simulation
 func (s *SISModel) SendEvent(event string) {
+}
+
+func (s *SISModel) Properties() api.IProperties {
+	return gui.NewProperties(300, 300, 1500, 100, 1)
 }
 
 func (s *SISModel) Step() bool {

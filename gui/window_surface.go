@@ -2,7 +2,6 @@ package gui
 
 import (
 	"Netron1-Go/api"
-	"Netron1-Go/simulation"
 	"fmt"
 	"image/color"
 	"log"
@@ -21,6 +20,7 @@ type WindowSurface struct {
 	texture  *sdl.Texture
 
 	rasterBuffer api.IRasterBuffer
+	model        api.IModel
 
 	// mouse
 	mx int32
@@ -46,16 +46,26 @@ func NewSurfaceBuffer() api.ISurface {
 	return o
 }
 
-func (ws *WindowSurface) initialize() {
+func (ws *WindowSurface) Raster() api.IRasterBuffer {
+	return ws.rasterBuffer
+}
+
+// Open shows the viewer and begins event polling
+// (host deuron.IHost)
+func (ws *WindowSurface) Open(model api.IModel) {
 	var err error
+	ws.model = model
 
 	err = sdl.Init(sdl.INIT_TIMER | sdl.INIT_VIDEO | sdl.INIT_EVENTS)
 	if err != nil {
 		panic(err)
 	}
 
-	ws.window, err = sdl.CreateWindow("Soft renderer", windowPosX, windowPosY,
-		width, height, sdl.WINDOW_SHOWN)
+	mp := model.Properties()
+
+	ws.window, err = sdl.CreateWindow("Soft renderer",
+		int32(mp.WindowPosX()), int32(mp.WindowPosY()),
+		int32(mp.Width()), int32(mp.Height()), sdl.WINDOW_SHOWN)
 
 	if err != nil {
 		panic(err)
@@ -73,24 +83,16 @@ func (ws *WindowSurface) initialize() {
 		panic(err)
 	}
 
-	ws.texture, err = ws.renderer.CreateTexture(sdl.PIXELFORMAT_ABGR8888, sdl.TEXTUREACCESS_STREAMING, width, height)
+	w := int32(mp.Width())
+	h := int32(mp.Height())
+
+	ws.texture, err = ws.renderer.CreateTexture(sdl.PIXELFORMAT_ABGR8888, sdl.TEXTUREACCESS_STREAMING, w, h)
 	if err != nil {
 		panic(err)
 	}
 
-	ws.rasterBuffer = simulation.NewRasterBuffer(width, height)
+	ws.rasterBuffer = NewRasterBuffer(int(w), int(h))
 	ws.rasterBuffer.EnableAlphaBlending(true)
-
-}
-
-func (ws *WindowSurface) Raster() api.IRasterBuffer {
-	return ws.rasterBuffer
-}
-
-// Open shows the viewer and begins event polling
-// (host deuron.IHost)
-func (ws *WindowSurface) Open() {
-	ws.initialize()
 
 	ws.opened = true
 }
@@ -169,11 +171,8 @@ func (ws *WindowSurface) Run(chToSim, chFromSim chan string) {
 	ws.chFromSim = chFromSim
 	ws.chToSim = chToSim
 
-	// log.Println("Starting viewer polling")
 	ws.running = true
-	// var simStatus = ""
 	var frameStart time.Time
-	// var elapsedTime float64
 	var loopTime float64
 
 	sleepDelay := 0.0
@@ -186,6 +185,11 @@ func (ws *WindowSurface) Run(chToSim, chFromSim chan string) {
 	ws.rasterBuffer.SetClearColor(color.RGBA{R: 255, G: 255, B: 255, A: 255})
 
 	ws.rasterBuffer.Clear()
+
+	mp := ws.model.Properties()
+	// leftT := sdl.Rect{X: 0, Y: 0, W: int32(mp.Width()) / 2, H: int32(mp.Height())}
+	leftT := sdl.Rect{X: 0, Y: 0, W: int32(mp.Width() * mp.Scale()), H: int32(mp.Height() * mp.Scale())}
+	// rightT := sdl.Rect{X: int32(mp.Width() / 2), Y: 0, W: int32(mp.Width() / 2), H: int32(mp.Height())}
 
 	for ws.running {
 		frameStart = time.Now()
@@ -201,27 +205,21 @@ func (ws *WindowSurface) Run(chToSim, chFromSim chan string) {
 
 		pixs := ws.rasterBuffer.BackPixels()
 		ws.texture.Update(nil, pixs.Pix, pixs.Stride)
-		ws.renderer.Copy(ws.texture, nil, nil)
+		// ws.renderer.Copy(ws.texture, nil, nil)
+		ws.renderer.Copy(ws.texture, &leftT, &leftT)
+		// ws.renderer.Copy(ws.texture, &rightT, &rightT)
 
 		// fmt.Printf("<%d, %d>\n", ws.mx, ws.my)
 
 		ws.renderer.Present()
 
-		// time.Sleep(time.Millisecond * 5)
 		loopTime = float64(time.Since(frameStart).Nanoseconds() / 1000000.0)
-		// elapsedTime = float64(time.Since(frameStart).Seconds())
 
 		sleepDelay = math.Floor(framePeriod - loopTime)
-		// fmt.Printf("%3.5f ,%3.5f, %3.5f \n", framePeriod, elapsedTime, sleepDelay)
 		if sleepDelay > 0 {
 			sdl.Delay(uint32(sleepDelay))
-			// elapsedTime = framePeriod
 		} else {
-			// elapsedTime = loopTime
 		}
-
-		// f := fmt.Sprintf("%2.2f", 1.0/elapsedTime*1000.0)
-		// fmt.Println(f)
 	}
 
 	fmt.Println("Run exiting")

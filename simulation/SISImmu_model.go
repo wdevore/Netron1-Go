@@ -2,6 +2,7 @@ package simulation
 
 import (
 	"Netron1-Go/api"
+	"Netron1-Go/gui"
 	"fmt"
 	"image/color"
 	"math/rand"
@@ -70,6 +71,10 @@ func (s *SISimmuModel) Configure(rasterBuffer api.IRasterBuffer) {
 
 // SendEvent receives an event from the host simulation
 func (s *SISimmuModel) SendEvent(event string) {
+}
+
+func (s *SISimmuModel) Properties() api.IProperties {
+	return gui.NewProperties(300, 300, 1500, 100, 1)
 }
 
 func (s *SISimmuModel) Reset() {

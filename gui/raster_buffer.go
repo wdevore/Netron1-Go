@@ -1,4 +1,4 @@
-package simulation
+package gui
 
 import (
 	"Netron1-Go/api"

@@ -38,7 +38,7 @@ type Simulation struct {
 	enableGif bool
 }
 
-func NewSimulation() *Simulation {
+func NewSimulation() api.ISimulation {
 	o := new(Simulation)
 	o.running = false
 	o.loop = true
@@ -54,8 +54,6 @@ func (s *Simulation) Initialize(rasterBuffer api.IRasterBuffer, surface api.ISur
 // Boot is the simulation bootstrap. The simulation isn't
 // running until told to do so.
 func (s *Simulation) Start(inChan chan string, outChan chan string) {
-	s.configure()
-
 	for s.loop {
 		select {
 		case cmd := <-inChan:
@@ -152,8 +150,8 @@ func (s *Simulation) Start(inChan chan string, outChan chan string) {
 	}
 }
 
-func (s *Simulation) configure() {
-	s.model = NewSISCityModel()
+func (s *Simulation) Configure(model api.IModel) {
+	s.model = model //NewSISCityModel()
 	s.model.Configure(s.raster)
 	s.model.Reset()
 	s.surface.Update(true)

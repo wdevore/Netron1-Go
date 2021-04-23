@@ -8,11 +8,16 @@ import (
 	"math/rand"
 )
 
-// The city model is based on "zones". Each zone has an epic center
-// that is the most connected and active.
-// In the city more people tend to meditate verse the suburbs.
+// The Dynamic Correlation (DC) model studies the DC between two
+// knowledge centers.
+// There are two versions:
+// 1) information flows in one direction,
+// 2) information flows bidrectionally.
+//
+// A trail of knowledge centers is created each which an increasing knowlege level.
+// This causes the info to travel in one direction.
 
-type SISCityModel struct {
+type SISDynCorrModel struct {
 	undetermenedColor color.RGBA // cell type = 0
 	infectedColor     color.RGBA // cell type = 1
 	susceptibleColor  color.RGBA // cell type = 2
@@ -35,8 +40,8 @@ type SISCityModel struct {
 	degree int
 }
 
-func NewSISCityModel() api.IModel {
-	o := new(SISCityModel)
+func NewSISDynCorrModel() api.IModel {
+	o := new(SISDynCorrModel)
 	o.undetermenedColor = color.RGBA{R: 200, G: 255, B: 200, A: 255}
 	// Infected = Blue
 	o.infectedColor = color.RGBA{R: 0, G: 0, B: 255, A: 255}
@@ -54,12 +59,12 @@ func NewSISCityModel() api.IModel {
 	return o
 }
 
-func (s *SISCityModel) Name() string {
-	return "SISCityModel"
+func (s *SISDynCorrModel) Name() string {
+	return "SISDynCorrModel"
 }
 
 // SendEvent receives an event from the host simulation
-func (s *SISCityModel) SendEvent(event string) {
+func (s *SISDynCorrModel) SendEvent(event string) {
 	switch event {
 	case "inc accept": // decrease acceptible rate
 		s.acceptibleRate -= s.stepSize
@@ -82,24 +87,24 @@ func (s *SISCityModel) SendEvent(event string) {
 	}
 }
 
-func (s *SISCityModel) Properties() api.IProperties {
-	return gui.NewProperties(300, 300, 1500, 100, 1)
+func (s *SISDynCorrModel) Properties() api.IProperties {
+	return gui.NewProperties(1200, 600, 1500, 100, 2)
 }
 
-func (s *SISCityModel) Configure(rasterBuffer api.IRasterBuffer) {
+func (s *SISDynCorrModel) Configure(rasterBuffer api.IRasterBuffer) {
 	s.raster = rasterBuffer
-	s.acceptibleRate = 0.23
+	s.acceptibleRate = 0.22
 	s.dropRate = 0.7
 
 	rand.Seed(131)
 
-	s.cells = make([][]Cell, s.raster.Height())
+	s.cells = make([][]Cell, s.raster.Width())
 	for i := range s.cells {
-		s.cells[i] = make([]Cell, s.raster.Width())
+		s.cells[i] = make([]Cell, s.raster.Height())
 	}
 }
 
-func (s *SISCityModel) Reset() {
+func (s *SISDynCorrModel) Reset() {
 	fmt.Println(("--- sir reset ---"))
 	s.raster.Clear()
 
@@ -114,8 +119,8 @@ func (s *SISCityModel) Reset() {
 		}
 	}
 
-	px := 150
-	py := 150
+	px := 40
+	py := 200
 	radius := 10
 	for col := px; col < px+radius; col += 1 {
 		for row := py; row < py+radius; row += 1 {
@@ -123,10 +128,37 @@ func (s *SISCityModel) Reset() {
 		}
 	}
 
-	s.buildCity(100, 100)
-	s.buildCity(105, 165)
-	s.buildCity(165, 115)
-	s.buildCity(165, 165)
+	s.buildLFP(50, 200)
+	s.buildPath(60, 195)
+	s.buildPath(65, 190)
+
+	s.buildLFP(70, 180)
+	s.buildPath(80, 180)
+	s.buildPath(85, 180)
+	s.buildPath(90, 180)
+	s.buildPath(95, 180)
+
+	s.buildLFP(100, 175)
+	s.buildPath(105, 170)
+	s.buildPath(110, 165)
+	s.buildPath(115, 160)
+	s.buildPath(120, 155)
+	s.buildPath(125, 150)
+
+	s.buildLFP(125, 140)
+	s.buildPath(135, 150)
+	s.buildPath(140, 155)
+	s.buildPath(145, 160)
+	s.buildPath(150, 160)
+
+	s.buildLFP(155, 160)
+	s.buildPath(165, 160)
+	s.buildPath(170, 160)
+	s.buildPath(175, 160)
+	s.buildPath(180, 160)
+	s.buildPath(185, 160)
+
+	s.buildLFP(190, 160)
 
 	for col := 0; col < w; col += 1 {
 		for row := 0; row < h; row += 1 {
@@ -135,48 +167,30 @@ func (s *SISCityModel) Reset() {
 	}
 }
 
-func (s *SISCityModel) buildCity(px, py int) {
-	radius := 40
+func (s *SISDynCorrModel) buildLFP(px, py int) {
+	radius := 10
 
-	// Create largest area first
-	for col := px; col < px+radius; col += 1 {
-		for row := py; row < py+radius; row += 1 {
-			s.cells[col][row].degree = 5
-		}
-	}
-
-	px += 5
-	py += 5
-	radius -= 10
-	for col := px; col < px+radius; col += 1 {
-		for row := py; row < py+radius; row += 1 {
-			s.cells[col][row].degree = 6
-		}
-	}
-
-	px += 5
-	py += 5
-	radius -= 10
 	for col := px; col < px+radius; col += 1 {
 		for row := py; row < py+radius; row += 1 {
 			s.cells[col][row].degree = 7
 		}
 	}
+}
 
-	px += 5
-	py += 5
-	radius -= 10
+func (s *SISDynCorrModel) buildPath(px, py int) {
+	radius := 5
+
 	for col := px; col < px+radius; col += 1 {
 		for row := py; row < py+radius; row += 1 {
-			s.cells[col][row].degree = 8
+			s.cells[col][row].degree = 6
 		}
 	}
 }
 
-func (s *SISCityModel) moveCity(dx, dy int) {
+func (s *SISDynCorrModel) moveCity(dx, dy int) {
 }
 
-func (s *SISCityModel) Step() bool {
+func (s *SISDynCorrModel) Step() bool {
 	// The current "step" works on the current-state but updates the next-state
 	// Once done, the next-state is copied back to the current-state.
 	w := s.raster.Width()
@@ -311,7 +325,7 @@ func (s *SISCityModel) Step() bool {
 	return infected > 0
 }
 
-func (s *SISCityModel) drawCell(col, row int) {
+func (s *SISDynCorrModel) drawCell(col, row int) {
 	switch s.cells[col][row].degree {
 	case 5:
 		s.raster.SetPixelColor(s.degree5Color)
